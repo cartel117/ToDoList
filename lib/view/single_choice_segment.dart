@@ -1,16 +1,37 @@
 import 'package:flutter/material.dart';
 
-enum ChoiceType { none, low, medium, high }
+enum ChoiceType { none, low, medium, high; int get intValue => index + 1; }
+
+class SingleChoiceController extends ChangeNotifier {
+  ChoiceType _type = ChoiceType.none;
+
+  ChoiceType get type => _type;
+
+  set type(ChoiceType value) {
+    if (_type != value) {
+      _type = value;
+      notifyListeners();
+    }
+  }
+}
 
 class SingleChoice extends StatefulWidget {
-  const SingleChoice({super.key});
+  final SingleChoiceController controller;
+
+  SingleChoice({Key? key, required this.controller}) : super(key: key);
 
   @override
   State<SingleChoice> createState() => _SingleChoiceState();
 }
 
 class _SingleChoiceState extends State<SingleChoice> {
-  ChoiceType type = ChoiceType.none;
+  late ChoiceType type;
+
+  @override
+  void initState() {
+    super.initState();
+    type = widget.controller.type;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +65,7 @@ class _SingleChoiceState extends State<SingleChoice> {
         onSelectionChanged: (Set<ChoiceType> newSelection) {
           setState(() {
             type = newSelection.first;
+            widget.controller.type = type;
           });
         },
       ),
