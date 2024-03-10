@@ -21,7 +21,8 @@ class DatabaseHelper {
           CREATE TABLE $_tableName(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             content TEXT,
-            importance INTEGER
+            importance INTEGER,
+            isCompleted INTEGER
           )
         ''');
       },
@@ -31,7 +32,7 @@ class DatabaseHelper {
 
   static Future<void> insertTodo(Todo todo) async {
     final db = await database;
-    Map<String, dynamic> map = {'content':todo.content,'importance':todo.importance};
+    Map<String, dynamic> map = {'content':todo.content,'importance':todo.importance, 'isCompleted':todo.isCompleted? 1 : 0};
     await db.insert(_tableName, map);
   }
 
@@ -40,10 +41,12 @@ class DatabaseHelper {
     final List<Map<String, dynamic>> maps = await db.query(_tableName);
     // print("maps -> $maps");
     return List.generate(maps.length, (i) {
+      bool isCompleted = intToBool(maps[i]['isCompleted']);
       return Todo(
         id: maps[i]['id'],
         content: maps[i]['content'],
         importance: maps[i]['importance'],
+        isCompleted: isCompleted
       );
     });
   }
@@ -66,4 +69,9 @@ class DatabaseHelper {
       whereArgs: [id],
     );
   }
+
+  static bool intToBool(int value) {
+  return value == 1;
+  }
+
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_list/model/todo.dart';
 import 'package:todo_list/view/single_choice_segment.dart';
@@ -36,21 +37,75 @@ class _ToDoListViewState extends State<ToDoListView> {
           body: Column(
             children: [
               Expanded(
-                flex: 1,
-                child: Consumer<ToDoListViewModel>(builder: (context, todoModel, child) {
-                  return ListView.builder(
-                    itemCount: todoModel.todoList.length,
-                    itemBuilder: (context, index) {
-                      Todo todo = todoModel.todoList[index];
-                      return ListTile(title: Text(todo.content));
-                  });
-                  
-                },),
-                // child: ListView.builder(
-                //   itemCount: model.todoList.length,
-                //   itemBuilder: (context, index) {
-
-                // }),
+                // flex: 1,
+                child: Consumer<ToDoListViewModel>(
+                  builder: (context, todoModel, child) {
+                    return ListView.builder(
+                        itemCount: todoModel.todoList.length,
+                        itemBuilder: (context, index) {
+                          Todo todo = todoModel.todoList[index];
+                          return Dismissible(
+                            key: Key(todo.id.toString()),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              color: Colors.red,
+                              alignment: Alignment.centerRight,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              child:
+                                  const Icon(Icons.delete, color: Colors.white),
+                            ),
+                            onDismissed: (direction) {
+                              // 在這裡添加您想要執行的刪除邏輯
+                              todoModel.deleteTodoFromDatabase(todo.id!);
+                            },
+                            child: GestureDetector(
+                              onTap: () {
+                                // 在這裡添加您想要執行的邏輯
+                                print('Container tapped');
+                                todo.isCompleted = !todo.isCompleted;
+                                todoModel.updateTodoInDatabase(todo);
+                              },
+                              child: Container(
+                                color: Colors.white,
+                                width: double.infinity,
+                                height: 35,
+                                child: Row(
+                                  children: [
+                                    const SizedBox(width: 15),
+                                    Icon(
+                                        todo.isCompleted
+                                            ? Icons.radio_button_checked
+                                            : Icons.radio_button_unchecked,
+                                        size: 18,
+                                        color: Colors.purple),
+                                    const SizedBox(width: 15),
+                                    Expanded(
+                                      child: Text(
+                                        todo.content,
+                                        style: TextStyle(
+                                          decoration: todo.isCompleted
+                                              ? TextDecoration.lineThrough
+                                              : TextDecoration.none,
+                                        ),
+                                      ),
+                                    ),
+                                    Row(
+                                      children: List.generate(
+                                          index,
+                                          (idx) => const Text('!',
+                                              style: TextStyle(
+                                                  color: Colors.red))),
+                                    ),
+                                    const SizedBox(width: 15)
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        });
+                  },
+                ),
               ),
             ],
           ),
@@ -98,16 +153,22 @@ class _ToDoListViewState extends State<ToDoListView> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.save),
-                    onPressed: () {
-                      // Save logic
-                      print("textEditingController text -> ${textEditingController.text}");
-                      print("singleChoiceController type -> ${singleChoiceController.type}");
-                      print("singleChoiceController type -> ${singleChoiceController.type.intValue}");
-                      model.addTodoToDatabase(textEditingController.text, singleChoiceController.type.intValue);
-                      textEditingController.text = '';
-                      singleChoiceController.type = ChoiceType.none;
-                      Navigator.of(maincontext).pop();
-                    },
+                    onPressed: textEditingController.text.isEmpty
+                        ? null
+                        : () {
+                            // Save logic
+                            print(
+                                "textEditingController text -> ${textEditingController.text}");
+                            print(
+                                "singleChoiceController type -> ${singleChoiceController.type}");
+                            print(
+                                "singleChoiceController type -> ${singleChoiceController.type.intValue}");
+                            model.addTodoToDatabase(textEditingController.text,
+                                singleChoiceController.type.intValue);
+                            textEditingController.text = '';
+                            singleChoiceController.type = ChoiceType.none;
+                            Navigator.of(maincontext).pop();
+                          },
                   ),
                 ],
               ),
