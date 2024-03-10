@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:todo_list/database/databaseHelper%20.dart';
+import 'package:todo_list/database/databaseHelper.dart';
 import 'package:todo_list/model/todo.dart';
 
 class ToDoListViewModel extends ChangeNotifier {
