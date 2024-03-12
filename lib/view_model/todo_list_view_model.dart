@@ -21,14 +21,18 @@ class ToDoListViewModel extends ChangeNotifier {
         content: content,
         importance: importance,
         isCompleted: false);
-
-    await DatabaseHelper.insertTodo(todo);
+    
+    final database = await DatabaseHelper.initDB();
+    final dbHelper = DatabaseHelper(database);
+    await dbHelper.insertTodo(todo);
     await loadAllTodos();
     // notifyListeners();
   }
 
   Future<void> loadAllTodos() async {
-    List<Todo> allTodoList = await DatabaseHelper.getAllTodos();
+    final database = await DatabaseHelper.initDB();
+    final dbHelper = DatabaseHelper(database);
+    List<Todo> allTodoList = await dbHelper.getAllTodos();
     print('allTodoList count = ${allTodoList.length}');
     for (int i = 0; i < allTodoList.length; i++) {
       Todo todo = allTodoList[i];
@@ -42,12 +46,16 @@ class ToDoListViewModel extends ChangeNotifier {
   }
 
   Future<void> updateTodoInDatabase(Todo todo) async {
-    await DatabaseHelper.updateTodo(todo);
+    final database = await DatabaseHelper.initDB();
+    final dbHelper = DatabaseHelper(database);
+    await dbHelper.updateTodo(todo);
     await loadAllTodos();
   }
 
   Future<void> deleteTodoFromDatabase(int id) async {
-    await DatabaseHelper.deleteTodo(id);
+    final database = await DatabaseHelper.initDB();
+    final dbHelper = DatabaseHelper(database);
+    await dbHelper.deleteTodo(id);
     await loadAllTodos();
   }
 }

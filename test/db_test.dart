@@ -7,29 +7,39 @@ import 'package:todo_list/model/todo.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'db_test.mocks.dart';
 
+// 定义一个模拟数据库工厂
+// class MockDatabaseFactory extends Mock implements sqflite.DatabaseFactory {}
+
 @GenerateMocks([Database]) 
 void main() {
-  sqfliteFfiInit();
+  // sqfliteFfiInit();
    // Initialize databaseFactory for sqflite_common_ffi
   databaseFactory = databaseFactoryFfi;
   final mockDatabase = MockDatabase();
 
   test('insertTodo should insert a todo into the database', () async {
-    await DatabaseHelper.database;
+    DatabaseHelper dbhelper = DatabaseHelper(mockDatabase);
     final todo = Todo(
       id: 1,
       content: 'Test todo',
       importance: 1,
       isCompleted: false,
     );
+    final expectedMap = {
+      'content': todo.content,
+      'importance': todo.importance,
+      'isCompleted': todo.isCompleted ? 1 : 0,
+    };
 
     // when(mockDatabase.insert('todo', todo.toMap()));
-    when(mockDatabase.insert('todo', todo.toMap())).thenAnswer((_) async => 1);
+    when(mockDatabase.insert('todo', {'content':todo.content,'importance':todo.importance, 'isCompleted':todo.isCompleted? 1 : 0})).thenAnswer((_) async => 1);
 
-    await DatabaseHelper.insertTodo(todo);
+    await dbhelper.insertTodo(todo);
+    verify(mockDatabase.insert('todo', expectedMap)).called(1);
   });
 
   test('getAllTodos should return a list of todos from the database', () async {
+    DatabaseHelper dbhelper = DatabaseHelper(mockDatabase);
     final expectedTodos = [
       Todo(
         id: 1,
@@ -50,8 +60,10 @@ void main() {
     ];
     when(mockDatabase.query('todo')).thenAnswer((_) async => maps);
 
-    final todos = await DatabaseHelper.getAllTodos();
+    final todos = await dbhelper.getAllTodos();
 
-    // expect(todos, expectedTodos);
+    expect(todos, isNotNull);
   });
+
+  // Add tests for updateTodo and deleteTodo methods
 }

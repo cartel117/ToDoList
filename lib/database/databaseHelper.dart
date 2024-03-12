@@ -2,20 +2,21 @@ import 'package:sqflite/sqflite.dart';
 import 'package:todo_list/model/todo.dart';
 
 class DatabaseHelper {
-  static Database? _database;
+  late final Database database;
   static const String _tableName = 'todo';
 
-  static Future<Database> get database async {
-    if (_database != null) {
-      return _database!;
-    }
-    _database = await _initDatabase();
-    return _database!;
-  }
+  DatabaseHelper(this.database);
 
-  static Future<Database> _initDatabase() async {
+  static Future<Database> initDB() async {
+  final path = 'todo_database.db'; // Assuming the database file is in the root directory
+
+  // Check if the database file exists
+  bool exists = await databaseExists(path);
+
+  if (!exists) {
+    // If the database does not exist, create it and the table
     return openDatabase(
-      'todo_database.db',
+      path,
       onCreate: (db, version) {
         return db.execute('''
           CREATE TABLE $_tableName(
@@ -28,18 +29,19 @@ class DatabaseHelper {
       },
       version: 1,
     );
+  } else {
+    // If the database already exists, return the existing database
+    return openDatabase(path);
   }
+}
 
-  static Future<void> insertTodo(Todo todo) async {
-    final db = await database;
+  Future<void> insertTodo(Todo todo) async {
     Map<String, dynamic> map = {'content':todo.content,'importance':todo.importance, 'isCompleted':todo.isCompleted? 1 : 0};
-    await db.insert(_tableName, map);
+    await database.insert(_tableName, map);
   }
 
-  static Future<List<Todo>> getAllTodos() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(_tableName);
-    // print("maps -> $maps");
+  Future<List<Todo>> getAllTodos() async {
+    final List<Map<String, dynamic>> maps = await database.query(_tableName);
     return List.generate(maps.length, (i) {
       bool isCompleted = intToBool(maps[i]['isCompleted']);
       return Todo(
@@ -51,9 +53,8 @@ class DatabaseHelper {
     });
   }
 
-  static Future<void> updateTodo(Todo todo) async {
-    final db = await database;
-    await db.update(
+  Future<void> updateTodo(Todo todo) async {
+    await database.update(
       _tableName,
       todo.toMap(),
       where: 'id = ?',
@@ -61,17 +62,15 @@ class DatabaseHelper {
     );
   }
 
-  static Future<void> deleteTodo(int id) async {
-    final db = await database;
-    await db.delete(
+  Future<void> deleteTodo(int id) async {
+    await database.delete(
       _tableName,
       where: 'id = ?',
       whereArgs: [id],
     );
   }
 
-  static bool intToBool(int value) {
-  return value == 1;
+  bool intToBool(int value) {
+    return value == 1;
   }
-
 }

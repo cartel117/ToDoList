@@ -5,7 +5,8 @@ import 'package:todo_list/view/todo_list_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await DatabaseHelper.database; // Initialize the database
+  final database = await DatabaseHelper.initDB();
+  final dbHelper = DatabaseHelper(database);// Initialize the database
   runApp(const MyApp());
 }
 
